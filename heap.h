@@ -9,7 +9,7 @@ typedef struct {
 }HEAP;
 
 HEAP* create_heap(unsigned int size);
-void add(const HEAP* const heap, const CHAR_VALUE* const object);
+void add(HEAP* const heap, const CHAR_VALUE* const object);
 CHAR_VALUE* extract_min(HEAP* const heap);
 
 #endif /* HEAP_H_ */
