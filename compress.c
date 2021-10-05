@@ -88,11 +88,25 @@ long int get_file_size(FILE* fp) {
 	fseek(fp, 0, SEEK_SET); 		// seek back to beginning of file
 	return size;
 	*/
+
+	// save current position
+	long int original_position = ftell(fp);
+	if (original_position == -1L) {
+		perror("Couldn't get position of the file pointer");
+		return -1;
+	}
+
+	// seek to the beginning
+	fseek(fp, 0, SEEK_SET);
+
 	char c;
 	int count = 0;
 
 	for (c = getc(fp); c != EOF; c = getc(fp))
 		count = count + 1;
+
+	// seek to the saved position
+	fseek(fp, 0, original_position);
 
 	return count;
 }
