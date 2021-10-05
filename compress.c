@@ -14,7 +14,7 @@ long int get_file_size(FILE* f);
 int main(int argc, char** argv) {
 	//get file path
 	unsigned char file_path[STRING_LIMIT];
-	if (argc == 0) {
+	if (argc == 1) {
 
 		printf("Enter the path of the file you wish to compress:\n>");
 		//getline(&file_path, 0, stdin);
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
 	}
 	else
-		strcpy(file_path, argv[0]);
+		strcpy(file_path, argv[1]);
 
 
 	FILE* file = fopen(file_path, "r");
@@ -88,11 +88,25 @@ long int get_file_size(FILE* fp) {
 	fseek(fp, 0, SEEK_SET); 		// seek back to beginning of file
 	return size;
 	*/
+
+	// save current position
+	long int original_position = ftell(fp);
+	if (original_position == -1L) {
+		perror("Couldn't get position of the file pointer");
+		return -1;
+	}
+
+	// seek to the beginning
+	fseek(fp, 0, SEEK_SET);
+
 	char c;
 	int count = 0;
 
 	for (c = getc(fp); c != EOF; c = getc(fp))
 		count = count + 1;
+
+	// seek to the saved position
+	fseek(fp, 0, original_position);
 
 	return count;
 }
