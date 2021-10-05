@@ -14,7 +14,7 @@ long int get_file_size(FILE* f);
 int main(int argc, char** argv) {
 	//get file path
 	unsigned char file_path[STRING_LIMIT];
-	if (argc == 0) {
+	if (argc == 1) {
 
 		printf("Enter the path of the file you wish to compress:\n>");
 		//getline(&file_path, 0, stdin);
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
 
 	}
 	else
-		strcpy(file_path, argv[0]);
+		strcpy(file_path, argv[1]);
 
 
 	FILE* file = fopen(file_path, "r");
