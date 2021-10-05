@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include "heap.h"
 #include "tree.h"
-#pragma warning(disable:4996)
 
 #define CHAR_LIMIT 127
 #define STRING_LIMIT 100
