@@ -1,15 +1,19 @@
+#include "node.h"
+
 #ifndef HEAP_H_
 #define HEAP_H_
 
-#include "char_value.h"
-
-typedef struct {
-	CHAR_VALUE** array;
+typedef struct heap {
+	NODE** array;
 	unsigned int last_index;
-}HEAP;
+} HEAP;
 
 HEAP* create_heap(unsigned int size);
-void add(HEAP* const heap, const CHAR_VALUE* const object);
-CHAR_VALUE* extract_min(HEAP* const heap);
+
+void add_to_heap(HEAP* const heap, const NODE* const object);
+
+NODE* extract_min(HEAP* const heap);
+
+void destroy_heap(HEAP* heap);
 
 #endif /* HEAP_H_ */
