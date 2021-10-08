@@ -1,17 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "char_value.h"
 #include "heap.h"
 
 //=========== Internal functions ===========
 
 //compare 2 char values, internal use
-int isBigger(CHAR_VALUE* first, CHAR_VALUE* second){
+int isBigger(NODE* first, NODE* second){
 	return first->value > second->value;
 }
 
 void exchange(HEAP* heap, unsigned int index1, unsigned int index2){
-	CHAR_VALUE* temp = heap->array[index1];
+	NODE* temp = heap->array[index1];
 	heap->array[index1] = heap->array[index2];
 	heap->array[index2] = temp;
 }
@@ -24,12 +23,15 @@ void swim(HEAP* const heap, unsigned int k){
 }
 
 void sink(HEAP* const heap, unsigned int k){
-	while(2*k <= heap->last_index){
+	while(2*k <= heap->last_index-1){
 		int j = 2*k;
-		if(j < heap->last_index && isBigger(heap->array[j+1], heap->array[j]))
+
+		//select biggest element from siblings
+		if(j < heap->last_index-1 && !isBigger(heap->array[j], heap->array[j+1]))
 			j++;
 
-		if(isBigger(heap->array[j],heap->array[k]))
+		//end sinking if order is restored
+		if(isBigger(heap->array[k],heap->array[j]))
 			break;
 
 		exchange(heap, k, j);
@@ -37,23 +39,34 @@ void sink(HEAP* const heap, unsigned int k){
 	}
 }
 
+void print_array(HEAP* heap){
+	for(int i=1; i<=heap->last_index;i++)
+		printf("%c:%d  ", heap->array[i]->character, heap->array[i]->value);
+	printf("\n");
+}
+
 //=========== Header functions ===========
 
 HEAP* create_heap(unsigned int size) {
-	CHAR_VALUE** heap_array = (CHAR_VALUE**) malloc( (size+1) * sizeof(CHAR_VALUE*));
-	HEAP* new_heap = malloc(sizeof(HEAP));
+	NODE** heap_array = (NODE**) calloc( (size+1), sizeof(NODE*));
+	HEAP* new_heap = malloc(sizeof(HEAP)*size);
 
 	if(heap_array == NULL || new_heap == NULL)
 		perror("Heap creation failed, malloc error");
 
+	heap_array[0] = NULL;
 	new_heap->array = heap_array;
 	new_heap->last_index = 0;
 
+	print_array(new_heap);
 	return new_heap;
 }
 
 
-void add(HEAP* const heap, const CHAR_VALUE* const object){
+void add_to_heap(HEAP* const heap, const NODE* const object){
+	if(object->character == '\0')
+		return;
+	
 	//add object to end of heap
 	heap->last_index++;
 	heap->array[heap->last_index] = object;
@@ -61,12 +74,19 @@ void add(HEAP* const heap, const CHAR_VALUE* const object){
 	swim(heap, heap->last_index);
 }
 
-CHAR_VALUE* extract_min(HEAP* const heap){
+NODE* extract_min(HEAP* const heap){
 	//move min value to end of heap
 	exchange(heap, 1, heap->last_index);
-	heap->last_index--;
 	//restore heap order
-	sink(heap, heap->last_index);
+	sink(heap, 1);
+	//delete last value
+	heap->last_index--;
 	//return extracted value
-	return heap->array[heap->last_index];
+	return heap->array[heap->last_index+1];
+}
+
+void destroy_heap(HEAP* heap){
+	free(heap->array);
+	free(heap);
+	heap = NULL;
 }
