@@ -3,6 +3,9 @@
 #ifndef NODE_H_
 #define NODE_H_
 
+
+#define CONST_TREE_ARRAY const NODE** const
+
 typedef struct node {
 	struct node* right;
 	struct node* left;
@@ -14,5 +17,7 @@ typedef struct node {
 NODE* new_node();
 
 void destroy_node(NODE* node);
+
+void traverse(const NODE* const root, CONST_TREE_ARRAY array);
 
 #endif /* NODE_H_ */
