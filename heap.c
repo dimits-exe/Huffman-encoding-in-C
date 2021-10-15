@@ -5,33 +5,33 @@
 //=========== Internal functions ===========
 
 //compare 2 char values, internal use
-int isBigger(NODE* first, NODE* second){
-	return first->value > second->value;
+static int isSmaller(NODE* first, NODE* second){
+	return first->value < second->value;
 }
 
-void exchange(HEAP* heap, unsigned int index1, unsigned int index2){
+static void exchange(HEAP* heap, unsigned int index1, unsigned int index2){
 	NODE* temp = heap->array[index1];
 	heap->array[index1] = heap->array[index2];
 	heap->array[index2] = temp;
 }
 
-void swim(HEAP* const heap, unsigned int k){
-	while(k > 1 && isBigger(heap->array[k], heap->array[k/2])){ //while value bigger than parent
+static void swim(HEAP* const heap, unsigned int k){
+	while(k > 1 && isSmaller(heap->array[k], heap->array[k/2])){ //while value bigger than parent
 		exchange(heap, k, k/2);									//move value upwards
 		k = k/2;
 	}
 }
 
-void sink(HEAP* const heap, unsigned int k){
+static void sink(HEAP* const heap, unsigned int k){
 	while(2*k <= heap->last_index-1){
 		int j = 2*k;
 
 		//select biggest element from siblings
-		if(j < heap->last_index-1 && !isBigger(heap->array[j], heap->array[j+1]))
+		if(j < heap->last_index-1 && !isSmaller(heap->array[j], heap->array[j+1]))
 			j++;
 
 		//end sinking if order is restored
-		if(isBigger(heap->array[k],heap->array[j]))
+		if(isSmaller(heap->array[k],heap->array[j]))
 			break;
 
 		exchange(heap, k, j);
@@ -39,7 +39,7 @@ void sink(HEAP* const heap, unsigned int k){
 	}
 }
 
-void print_array(HEAP* heap){
+static void print_array(HEAP* heap){
 	for(int i=1; i<=heap->last_index;i++)
 		printf("%c:%d  ", heap->array[i]->character, heap->array[i]->value);
 	printf("\n");
@@ -64,12 +64,10 @@ HEAP* create_heap(unsigned int size) {
 
 
 void add_to_heap(HEAP* const heap, const NODE* const object){
-	if(object->character == '\0')
-		return;
-	
 	//add object to end of heap
 	heap->last_index++;
 	heap->array[heap->last_index] = object;
+
 	//restore heap order
 	swim(heap, heap->last_index);
 }
