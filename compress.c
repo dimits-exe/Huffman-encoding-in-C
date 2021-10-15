@@ -5,7 +5,13 @@
 
 #define DEBUG
 #define CHAR_LIMIT 127
-#define STRING_LIMIT 100
+#define STRING_LIMIT 500
+#define FILE_SEPARATOR '/'
+#define FILE_EXT ".huff"
+
+
+char* get_directory(char* full_path);
+char* get_name(char* full_path);
 
 void fill_data(FILE* file, int file_size, int* const char_map, char* const content_string);
 long int get_file_size(FILE* f);
@@ -13,25 +19,38 @@ void print_char_map(const int* const array);
 
 
 int main(int argc, char** argv) {
+
 	//get file path
-	char file_path [STRING_LIMIT];
+	char * file_name = NULL;
+	char * directory = NULL;
+	char * full_file_path = (char*) malloc(sizeof(char) * STRING_LIMIT);
+
 	if(argc == 1){
-
 		printf("Enter the path of the file you wish to compress:\n>");
-		getline(&file_path, 0 , stdin);
-		if(strlen(file_path) > 100){
-			perror("File name too large");
-			return -1;
-		}
-
+		getline(&full_file_path, 0 , stdin);
 	} else
-		strcpy(file_path, argv[1]);
+		strcpy(full_file_path, argv[1]);
+
+	if(strlen(full_file_path) > STRING_LIMIT){
+		perror("File name too large");
+		return -1;
+	}
+
+	printf("%s\n", full_file_path);
+
+	file_name = get_name(full_file_path);
+	directory = get_directory(full_file_path);
+
+#ifdef DEBUG
+	printf("File name: %s\n", file_name);
+	printf("Directory: %s\n", directory);
+#endif
 
 
 	//read file
-	FILE* file = fopen(file_path, "r");
+	FILE* file = fopen(full_file_path, "r");
 	if(file == NULL){
-		fprintf(stderr, "Failed to open file %s", file_path);
+		fprintf(stderr, "Failed to open file %s", full_file_path);
 		return -1;
 	}
 
@@ -51,12 +70,13 @@ int main(int argc, char** argv) {
 	fill_data(file, file_size, char_map, file_contents);
 
 #ifdef DEBUG
-	printf("file_size: %ld\n", file_size);
+	printf("File Size: %ld\n", file_size);
 	printf("string: %s\n", file_contents);
 	print_char_map(char_map);
 #endif
 
 	fclose(file);
+	file = NULL;
 
 
 	//create Huffman tree
@@ -71,7 +91,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	free(char_map);
+	const int NODE_COUNT = heap->last_index-1;
 
 #ifdef DEBUG
 	printf("Heap:");
@@ -85,7 +105,7 @@ int main(int argc, char** argv) {
 		NODE* left_node = extract_min(heap);
 		NODE* right_node = extract_min(heap);
 
-		printf("left %c, right %c\n", left_node->character, right_node->character);
+		node->character = '\0';
 		node->left = left_node;
 		node->right = right_node;
 		node->value = left_node->value + right_node->value;
@@ -93,21 +113,45 @@ int main(int argc, char** argv) {
 		add_to_heap(heap, node);
 	}
 
-	NODE* root = extract_min(heap);
-	printf("%d", root == NULL);
+	const NODE* const root = extract_min(heap);
+
 	destroy_heap(heap);
 
+	CONST_TREE_ARRAY node_array = (CONST_TREE_ARRAY) malloc(sizeof(NODE*) * NODE_COUNT);
 
 	//write dictionary
+	traverse(root, node_array); //get tree nodes in-order
+
+	for(int i=0; i<CHAR_LIMIT; i++) //clear char map
+		char_map[i] = 0;
+
+
+
+#ifdef DEBUG
+	printf("Tree:");
+	for(int i=0; i<NODE_COUNT; i++)
+			printf("%c-%d", node_array[i]->character, node_array[i]->value);
+	printf("\n");
+#endif
+
 
 	//write encoded file
 
-
+	free(char_map);
 	//exit
 	return 0;
-
 }
 
+char* get_directory(char* full_path){
+	char * last_slash = strrchr(full_path, FILE_SEPARATOR);
+	return strndup(full_path, strlen(full_path) - strlen(last_slash) + 1);
+}
+
+char* get_name(char* full_path){
+	char * start = strrchr(full_path, FILE_SEPARATOR) + sizeof(char);
+	char * end = strrchr(start, '.');
+	return strndup(start, strlen(start) - strlen(end));
+}
 
 void fill_data(FILE* file, int file_size, int* const char_map, char* const content_string) {
 	fread(content_string, sizeof(char), file_size, file);
@@ -133,4 +177,5 @@ void print_char_map(const int* const array) {
 		if(array[i] != 0)
 			printf("%c : %d\n", (char)i, array[i]);
 }
+
 
