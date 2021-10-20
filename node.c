@@ -60,25 +60,3 @@ void get_huff_code(const NODE* const root, char* string, char c) {
 	get_huff_code_r(root, c, temp, NONE, -1);
 	strcpy(string, temp);
 }
-
-/*
- * static void get_huff_code_r(const NODE* const node, char key, char* string, SYMBOL s, int* index){
-	if(node == NULL)
-		return;
-
-	if(!isLeaf(node) && s != NONE){ //if leaf and not first invocation
-		//append symbol to end of string and null terminate it
-		printf("writing %c at index %d", s, *(index));
-		string[*(index)] = s;
-		*(index) = *(index) + 1;
-		printf(" and null at index %d\n", *(index));
-		string[*(index)] = '\0';
-	}
-
-	if(node->character == key) //found the code for key
-		return;
-
-	get_huff_code_r(node->left, key, string, LEFT_SYMBOL, index);
-	get_huff_code_r(node->right, key, string, RIGHT_SYMBOL, index);
-}*
- */
