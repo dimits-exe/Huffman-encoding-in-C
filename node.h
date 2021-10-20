@@ -1,10 +1,8 @@
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef NODE_H_
 #define NODE_H_
-
-
-#define CONST_TREE_ARRAY const NODE** const
 
 typedef struct node {
 	struct node* right;
@@ -18,6 +16,8 @@ NODE* new_node();
 
 void destroy_node(NODE* node);
 
-void traverse(const NODE* const root, CONST_TREE_ARRAY array);
+void get_nodes(const NODE* const root, NODE** array);
+
+void get_huff_code(const NODE* const root, char* string, char c);
 
 #endif /* NODE_H_ */
