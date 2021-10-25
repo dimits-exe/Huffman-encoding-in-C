@@ -18,9 +18,9 @@ void fill_data(FILE* file, int file_size, int* const char_map, char* const conte
 long int get_file_size(FILE* f);
 void print_char_map(const int* const array);
 
-int build_tree(int* map, NODE * node_ptr);
-void write_dictionary(const NODE * const root, int NODE_COUNT, char** huffman_map);
-void write_to_file(FILE* file, char* contents, char** char_map);
+int build_tree(int map [], NODE * node_ptr);
+void write_dictionary(const NODE * const root, int NODE_COUNT, char huffman_map [CHAR_LIMIT][CHAR_LIMIT]);
+void write_to_file(FILE* file, char* contents, char char_to_huff_map [CHAR_LIMIT][CHAR_LIMIT]);
 
 int main(int argc, char** argv) {
 
@@ -28,25 +28,27 @@ int main(int argc, char** argv) {
 	char * file_name;
 	char * directory;
 	char * file_contents;
+	char * compressed_file_path;
 
 	FILE* file;				//input / output files
 	int* char_map; 			//char to int map
 	char char_to_huff_map [CHAR_LIMIT][CHAR_LIMIT];	//char to string map
 
-	const NODE* root;	//huffman tree
+	NODE* root;		//huffman tree
 
 
 	//get file path
-	if(argc == 1){
-		printf("Enter the path of the file you wish to compress:\n>");
-		getline(&full_file_path, 0 , stdin);
+	if(argc != 2){
+		printf("Enter the path of the file you wish to compress as a cmd argument");
+		return -1;
+	} else
+
+
+	if(strlen(argv[1]) > STRING_LIMIT){
+		fprintf(stderr, "File name too large");
+		return -1;
 	} else
 		strcpy(full_file_path, argv[1]);
-
-	if(strlen(full_file_path) > STRING_LIMIT){
-		perror("File name too large");
-		return -1;
-	}
 
 	printf("%s\n", full_file_path);
 
@@ -68,7 +70,7 @@ int main(int argc, char** argv) {
 
 	char_map = (int*) calloc(CHAR_LIMIT, sizeof(int));
 	if(char_map == NULL){
-		perror("Malloc failed on char map");
+		fprintf(stderr, "Malloc failed on char map");
 		return -1;
 	}
 
@@ -76,7 +78,7 @@ int main(int argc, char** argv) {
 
 	file_contents = (char*) calloc(file_size, sizeof(char));
 	if(file_contents == NULL){
-		perror("Malloc failed on content string");
+		fprintf(stderr, "Malloc failed on content string");
 		return -1;
 	}
 
@@ -94,15 +96,21 @@ int main(int argc, char** argv) {
 
 	//create Huffman tree
 	const int NODE_COUNT = build_tree(char_map, root);
-
 	free(char_map);
 
 	//write dictionary
 	write_dictionary(root, NODE_COUNT, char_to_huff_map);
 
 	//write encoded file
-	file = fopen(strcat(directory, strcat(file_name , FILE_EXT)), "w");
 
+	compressed_file_path = malloc(strlen(directory) + strlen(file_name) + strlen(FILE_EXT) + 1);
+	sprintf(compressed_file_path, "%s%s%s", directory, file_name, FILE_EXT);
+
+#ifdef DEBUG
+	printf("New file name: %s", compressed_file_path);
+#endif
+
+	file = fopen(compressed_file_path, "w");
 	write_to_file(file, file_contents, char_to_huff_map);
 
 	fclose(file);
@@ -112,6 +120,7 @@ int main(int argc, char** argv) {
 	free(file_contents);
 	free(directory);
 	free(file_name);
+	free(compressed_file_path);
 
 
 	return 0;
@@ -147,13 +156,13 @@ long int get_file_size(FILE* fp){
 	return size;
 }
 
-void print_char_map(const int* const array) {
+void print_char_map(const int array []) {
 	for(int i=0;i<=CHAR_LIMIT;i++)
 		if(array[i] != 0)
 			printf("%c : %d\n", (char)i, array[i]);
 }
 
-void write_to_file(FILE* file, char* contents, char** char_map){
+void write_to_file(FILE* file, char* contents, char char_map [CHAR_LIMIT][CHAR_LIMIT]){
 	//write dictionary
 	for(int i=0; i<=CHAR_LIMIT; i++){
 		if(strlen(char_map[i])!= 0)
@@ -172,15 +181,15 @@ void write_to_file(FILE* file, char* contents, char** char_map){
 int build_tree(int* map, NODE * node_ptr) {
 
 	HEAP* heap = create_heap(CHAR_LIMIT);
-		for(int i=0; i<CHAR_LIMIT; i++){
-			if(map[i] != 0){
-				NODE* node = new_node();
-				node->value = map[i];
-				node->character = (char) i;
+	for(int i=0; i<CHAR_LIMIT; i++){
+		if(map[i] != 0){
+			NODE* node = new_node();
+			node->value = map[i];
+			node->character = (char) i;
 
-				add_to_heap(heap, node);
-			}
+			add_to_heap(heap, node);
 		}
+	}
 
 	const int NODE_COUNT = heap->last_index-1;
 
@@ -204,15 +213,16 @@ int build_tree(int* map, NODE * node_ptr) {
 			add_to_heap(heap, node);
 		}
 
-		destroy_heap(heap);
 
 		node_ptr = extract_min(heap);
+
+		destroy_heap(heap);
 
 		return NODE_COUNT;
 }
 
 
-void write_dictionary(const NODE * const root, int NODE_COUNT, char** huffman_map){
+void write_dictionary(const NODE * const root, int NODE_COUNT, char  huffman_map [CHAR_LIMIT][CHAR_LIMIT]){
 	NODE* array [NODE_COUNT];
 
 	get_nodes(root, array); //get tree nodes in-order
